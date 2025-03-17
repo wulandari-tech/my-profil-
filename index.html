@@ -1,211 +1,288 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark"> <!-- Tambahkan data-theme -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>wanzofc - Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> <!-- Font Awesome -->
     <style>
-      /* ... (CSS sebelumnya, tambahkan styling untuk gambar) ... */
-      body {
-          font-family: sans-serif;
-          margin: 20px;
-          background-color: #f0f0f0;
-      }
-      h1 {
-          color: #333;
-          text-align: center;
-      }
-      .projects {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-      }
-      .project {
-          border: 1px solid #ddd;
-          padding: 15px;
-          width: 300px;
-          background-color: white;
-          border-radius: 8px;
-      }
-      .project h2{
-        margin-top: 0;
-      }
-
-      .project img { /* Styling untuk gambar project */
-          max-width: 100%;
-          height: auto;
-          margin-bottom: 10px;
-      }
-        .skills {
-            display: flex; /*agar skill kesamping */
-            flex-wrap: wrap;
-            gap: 15px;
+        /* --- Basic Styles (dan yang sebelumnya) --- */
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            transition: background-color 0.5s ease, color 0.5s ease; /* Transisi untuk tema */
         }
-        .skill {
-            text-align: center; /*tengah */
+        h1 { color: #333; text-align: center; }
+        /* ... (project, skills, contact styles - sama) ... */
+        .projects, .skills { display: flex; flex-wrap: wrap; gap: 20px; }
+        .project, .skill { border: 1px solid #ddd; padding: 15px; background-color: white; border-radius: 8px;}
+        .project img, .skill img { max-width: 100%; height: auto; margin-bottom: 10px; }
+        .skill {text-align: center;}
+        .skill img{ width: 50px; height: 50px; display: block; margin: 0 auto 5px; }
+        /* --- Dark/Light Theme --- */
+        body[data-theme="dark"] {
+            background-color: #121212; /* Hitam pekat */
+            color: #eee;
+        }
+        body[data-theme="dark"] .project,
+        body[data-theme="dark"] .skill{
+            background-color: #333;
+            border-color: #555;
+            color: #eee;
         }
 
-        .skill img {
-            width: 50px; /*lebar skill */
-            height: 50px;
-            display: block; /*agar margin bekerja */
-            margin: 0 auto 5px; /*auto agar ketengah*/
+        body[data-theme="light"] {
+            background-color: #f0f0f0;
+            color: #333;
         }
-        /* Chat Styles */
-      #chat-container {
-        margin-top: 20px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        max-width: 500px;
-      }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li.sender { background-color: #eee; } /* Pesan dari pengirim */
-      #messages li.receiver {background-color: lightblue;}
-      #chat-form { display: flex; margin-top: 10px; }
-      #m { flex-grow: 1; padding: 8px; } /* Input pesan */
-      #chat-form button { padding: 8px 15px; }
+          /* --- Chat Modal --- */
+        #chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%; /* Bulat */
+            cursor: pointer;
+            z-index: 1000; /* Pastikan di atas elemen lain */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sedikit shadow */
+        }
+        #chat-modal {
+            display: none; /* Sembunyikan secara default */
+            position: fixed;
+            bottom: 80px; /* Sedikit di atas tombol */
+            right: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 300px;
+            z-index: 1000;
+        }
+        #chat-modal.open { /* class untuk menampilkan modal */
+          display: block;
+        }
 
-      /* Active Users */
-      #active-users {
-        margin-top: 10px;
-        border: 1px solid #ddd;
-        padding: 10px;
-      }
+        #chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        #chat-messages {
+            list-style: none;
+            padding: 10px;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto; /* Scrollable */
+        }
+        #chat-messages li{
+          padding: 5px;
+          margin-bottom: 5px;
+          border-radius: 5px;
+        }
+        #chat-messages .sender {
+            background-color: #eee;
+            text-align: right;
+        }
+        #chat-messages .receiver{
+            background-color: lightblue;
+        }
+        #chat-input-container {
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        #chat-input {
+            width: calc(100% - 70px); /* Kurangi lebar tombol */
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #chat-send {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
 
-      /* Select Recipient */
-      #recipient-select {
-        margin-top: 5px;
-        padding: 5px;
-      }
+        /* --- Theme Toggle Button --- */
+        #theme-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            font-size: 24px; /* Ukuran ikon */
+            cursor: pointer;
+            color: inherit; /* Mengikuti warna teks */
+            z-index: 1000;
+        }
+          /* --- Broadcast Messages --- */
+          #broadcast-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: white;
+        }
+
+        #broadcast-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #broadcast-messages li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        /* GSAP Styles (optional, for animation) */
+        .fade-in {
+            opacity: 0; /* Mulai dengan opacity 0 */
+        }
     </style>
 </head>
 <body>
+    <button id="theme-toggle"><i class="fas fa-sun"></i></button> <!-- Tombol tema -->
+
     <h1>wanzofc</h1>
 
     <section id="projects">
         <h2>Projects</h2>
         <div class="projects">
-            <!-- Project akan ditampilkan di sini -->
+            <!-- Project -->
         </div>
     </section>
 
     <section id="skills">
         <h2>Skills</h2>
         <ul class="skills">
-            <!-- Skill ditampilkan -->
+            <!-- Skill -->
         </ul>
     </section>
 
     <section id="contact">
-        <h2>Contact</h2>
-        <p>Email: <span id="email"></span></p>
-        <p>GitHub: <a id="github" href="#" target="_blank"></a></p>
+      <h2>Contact</h2>
+      <p>Email: <span id="email"></span></p>
+      <p>GitHub: <a id="github" href="#" target="_blank"></a></p>
     </section>
 
 
-    <section id="chat-container">
-        <h2>Chat with Admin</h2>
-        <div id="active-users">
-          <h3>Active Users:</h3>
-          <ul id="active-users-list"></ul>
+    <section id="broadcast-container">
+      <h2>Announcements</h2>
+      <ul id="broadcast-messages"></ul>
+  </section>
+
+    <!-- Tombol Chat -->
+    <button id="chat-button"><i class="fas fa-comment-dots"></i></button>
+
+     <!-- Modal Chat -->
+     <div id="chat-modal">
+        <div id="chat-header">Chat with wanzofc</div>
+        <ul id="chat-messages"></ul>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Type your message...">
+            <button id="chat-send">Send</button>
         </div>
-
-        <select id="recipient-select">
-          <option value="">Everyone (Broadcast)</option>
-          <!-- Daftar user aktif akan ditambahkan di sini -->
-        </select>
-        <ul id="messages"></ul>
-        <form id="chat-form" action="">
-          <input id="m" autocomplete="off" /><button>Send</button>
-        </form>
-      </section>
+    </div>
 
 
-    <script src="/socket.io/socket.io.js"></script> <!-- Import library Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script> <!-- GSAP -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        // --- Socket.IO ---
-      const socket = io(); // Inisialisasi koneksi Socket.IO
+        const socket = io();
+        let myId = null;
 
-      // --- Mendapatkan ID socket client ---
-      let myId = null;
-      socket.on('connect', () => { //event connect
-          myId = socket.id;
-          console.log('My socket ID:', myId);
-      });
+        // --- Socket Connection & ID ---
+        socket.on('connect', () => {
+            myId = socket.request.sessionID; // Ambil session ID
+            console.log('My session ID:', myId);
+        });
 
-      // --- Menampilkan daftar user yang aktif ---
-      const activeUsersList = document.getElementById('active-users-list');
-      const recipientSelect = document.getElementById('recipient-select');
+        // --- Theme Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
 
-      socket.on('active users', (users) => {
-        activeUsersList.innerHTML = ''; // Kosongkan daftar
-        recipientSelect.innerHTML = '<option value="">Everyone (Broadcast)</option>'; // Reset select
+            // Ganti ikon
+            themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
 
-        users.forEach(userId => {
-            //  Tampilkan di daftar user aktif
-            const userItem = document.createElement('li');
-            userItem.textContent = userId;
-            activeUsersList.appendChild(userItem);
+        // --- Chat Modal ---
+        const chatButton = document.getElementById('chat-button');
+        const chatModal = document.getElementById('chat-modal');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
 
-            //  Tambahkan ke select option (kecuali diri sendiri)
-            if (userId !== myId) {
-                const option = document.createElement('option');
-                option.value = userId;
-                option.textContent = userId;
-                recipientSelect.appendChild(option);
+
+        chatButton.addEventListener('click', () => {
+          chatModal.classList.toggle('open'); //munculkan modal
+          //animasi sederhana
+          if(chatModal.classList.contains('open')){
+            gsap.from(chatModal, {duration: 0.5, y: 50, opacity: 0, ease: "back"});
+          }
+        });
+
+
+        chatSend.addEventListener('click', () => {
+            if (chatInput.value) {
+                socket.emit('chat message', chatInput.value);
+                // Tampilkan pesan di modal chat sendiri
+                const item = document.createElement('li');
+                item.textContent = `You: ${chatInput.value}`;
+                item.classList.add('sender');
+                chatMessages.appendChild(item);
+                chatInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         });
-      });
 
-      // --- Chat ---
-      const messages = document.getElementById('messages');
-      const form = document.getElementById('chat-form');
-      const input = document.getElementById('m');
+        // Enter key
+        chatInput.addEventListener('keydown', (event) => {
+          if(event.key === 'Enter'){
+            chatSend.click(); //trigger click
+          }
+        });
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (input.value) {
-          const recipientId = recipientSelect.value; // Ambil ID penerima
-          socket.emit('chat message', input.value, recipientId); // Kirim pesan
-          input.value = '';
-        }
-      });
-
-      socket.on('chat message', (msg, senderId) => {
-        const item = document.createElement('li');
-        item.textContent = `${senderId}: ${msg}`;
-        //  Tentukan class berdasarkan pengirim/penerima
-        item.classList.add(senderId === myId ? 'sender' : 'receiver');
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight); // Scroll ke bawah
-      });
+        socket.on('chat message', (msg, senderId) => { //pesan dari admin
+            const item = document.createElement('li');
+            item.textContent = `${senderId === 'admin' ? 'wanzofc' : senderId}: ${msg}`;
+            item.classList.add('receiver'); //class receiver
+            chatMessages.appendChild(item);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll ke bawah
+        });
 
 
-        // --- Fetch dan Display Data Portfolio ---
+        // --- Fetch Data dan Tampilkan ---
         fetch('/api/portfolio')
-            .then(response => response.json())
-            .then(data => {
-                // --- Menampilkan Project (dengan gambar) ---
-                const projectsContainer = document.querySelector('.projects');
-                projectsContainer.innerHTML = ''; // Kosongkan
-                data.projects.forEach(project => {
-                    const projectDiv = document.createElement('div');
-                    projectDiv.classList.add('project');
-                    projectDiv.innerHTML = `
-                        <h2>${project.title}</h2>
-                        <img src="${project.image}" alt="${project.title}">
-                        <p>${project.description}</p>
-                    `;
-                    projectsContainer.appendChild(projectDiv);
-                });
+          .then(response => response.json())
+          .then(data => {
 
-                // --- Menampilkan Skills (dengan gambar) ---
+              const projectsContainer = document.querySelector('.projects');
+              projectsContainer.innerHTML = '';
+              data.projects.forEach(project => {
+                  const projectDiv = document.createElement('div');
+                  projectDiv.classList.add('project', 'fade-in'); // Tambah class fade-in
+                  projectDiv.innerHTML = `
+                      <h2>${project.title}</h2>
+                      <img src="${project.image}" alt="${project.title}">
+                      <p>${project.description}</p>
+                  `;
+                  projectsContainer.appendChild(projectDiv);
+              });
+
                 const skillsList = document.querySelector('#skills .skills');
-                skillsList.innerHTML = ''; // Kosongkan
+                skillsList.innerHTML = '';
                 data.skills.forEach(skill => {
                     const skillItem = document.createElement('li');
-                    skillItem.classList.add('skill'); // Tambah class skill
+                    skillItem.classList.add('skill', 'fade-in'); //tambah class fade in
                     skillItem.innerHTML = `
                       <img src="${skill.image}" alt="${skill.name}" />
                       <span>${skill.name}</span>
@@ -213,15 +290,39 @@
                     skillsList.appendChild(skillItem);
                 });
 
-                // --- Menampilkan Contact ---
-                document.getElementById('email').textContent = data.contact.email;
-                document.getElementById('github').href = data.contact.github;
-                document.getElementById('github').textContent = data.contact.github;
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-                document.querySelector('#projects').innerHTML = '<p>Error loading portfolio data.</p>';
+              document.getElementById('email').textContent = data.contact.email;
+              document.getElementById('github').href = data.contact.github;
+              document.getElementById('github').textContent = data.contact.github;
+
+              // --- GSAP Animation (setelah data ditampilkan) ---
+              gsap.to('.fade-in', { duration: 1, opacity: 1, stagger: 0.2 }); // Animasi fade-in
+          })
+          .catch(error => console.error(error));
+
+          // --- Broadcast Messages ---
+          const broadcastMessagesList = document.getElementById('broadcast-messages');
+
+          function displayBroadcasts(messages) {
+            broadcastMessagesList.innerHTML = '';
+            messages.forEach(msg => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${msg.message} (Sent: ${new Date(msg.timestamp).toLocaleString()})`;
+                broadcastMessagesList.appendChild(listItem);
             });
+          }
+
+
+          fetch('/api/broadcasts')
+            .then(response => response.json())
+            .then(data => {
+              displayBroadcasts(data);
+            })
+            .catch(error => console.error('Error fetching broadcasts:', error));
+
+
+            socket.on('new broadcast', (newBroadcast) => {
+              displayBroadcasts([newBroadcast, ...broadcastMessages]); //tampilkan broadcast baru di atas
+          });
     </script>
 </body>
 </html>
