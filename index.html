@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wanzofc - Portfolio</title>
+    <style>
+      /* ... (CSS sebelumnya, tambahkan styling untuk gambar) ... */
+      body {
+          font-family: sans-serif;
+          margin: 20px;
+          background-color: #f0f0f0;
+      }
+      h1 {
+          color: #333;
+          text-align: center;
+      }
+      .projects {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .project {
+          border: 1px solid #ddd;
+          padding: 15px;
+          width: 300px;
+          background-color: white;
+          border-radius: 8px;
+      }
+      .project h2{
+        margin-top: 0;
+      }
+
+      .project img { /* Styling untuk gambar project */
+          max-width: 100%;
+          height: auto;
+          margin-bottom: 10px;
+      }
+        .skills {
+            display: flex; /*agar skill kesamping */
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .skill {
+            text-align: center; /*tengah */
+        }
+
+        .skill img {
+            width: 50px; /*lebar skill */
+            height: 50px;
+            display: block; /*agar margin bekerja */
+            margin: 0 auto 5px; /*auto agar ketengah*/
+        }
+        /* Chat Styles */
+      #chat-container {
+        margin-top: 20px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        max-width: 500px;
+      }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li.sender { background-color: #eee; } /* Pesan dari pengirim */
+      #messages li.receiver {background-color: lightblue;}
+      #chat-form { display: flex; margin-top: 10px; }
+      #m { flex-grow: 1; padding: 8px; } /* Input pesan */
+      #chat-form button { padding: 8px 15px; }
+
+      /* Active Users */
+      #active-users {
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        padding: 10px;
+      }
+
+      /* Select Recipient */
+      #recipient-select {
+        margin-top: 5px;
+        padding: 5px;
+      }
+    </style>
+</head>
+<body>
+    <h1>wanzofc</h1>
+
+    <section id="projects">
+        <h2>Projects</h2>
+        <div class="projects">
+            <!-- Project akan ditampilkan di sini -->
+        </div>
+    </section>
+
+    <section id="skills">
+        <h2>Skills</h2>
+        <ul class="skills">
+            <!-- Skill ditampilkan -->
+        </ul>
+    </section>
+
+    <section id="contact">
+        <h2>Contact</h2>
+        <p>Email: <span id="email"></span></p>
+        <p>GitHub: <a id="github" href="#" target="_blank"></a></p>
+    </section>
+
+
+    <section id="chat-container">
+        <h2>Chat with Admin</h2>
+        <div id="active-users">
+          <h3>Active Users:</h3>
+          <ul id="active-users-list"></ul>
+        </div>
+
+        <select id="recipient-select">
+          <option value="">Everyone (Broadcast)</option>
+          <!-- Daftar user aktif akan ditambahkan di sini -->
+        </select>
+        <ul id="messages"></ul>
+        <form id="chat-form" action="">
+          <input id="m" autocomplete="off" /><button>Send</button>
+        </form>
+      </section>
+
+
+    <script src="/socket.io/socket.io.js"></script> <!-- Import library Socket.IO -->
+    <script>
+        // --- Socket.IO ---
+      const socket = io(); // Inisialisasi koneksi Socket.IO
+
+      // --- Mendapatkan ID socket client ---
+      let myId = null;
+      socket.on('connect', () => { //event connect
+          myId = socket.id;
+          console.log('My socket ID:', myId);
+      });
+
+      // --- Menampilkan daftar user yang aktif ---
+      const activeUsersList = document.getElementById('active-users-list');
+      const recipientSelect = document.getElementById('recipient-select');
+
+      socket.on('active users', (users) => {
+        activeUsersList.innerHTML = ''; // Kosongkan daftar
+        recipientSelect.innerHTML = '<option value="">Everyone (Broadcast)</option>'; // Reset select
+
+        users.forEach(userId => {
+            //  Tampilkan di daftar user aktif
+            const userItem = document.createElement('li');
+            userItem.textContent = userId;
+            activeUsersList.appendChild(userItem);
+
+            //  Tambahkan ke select option (kecuali diri sendiri)
+            if (userId !== myId) {
+                const option = document.createElement('option');
+                option.value = userId;
+                option.textContent = userId;
+                recipientSelect.appendChild(option);
+            }
+        });
+      });
+
+      // --- Chat ---
+      const messages = document.getElementById('messages');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('m');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (input.value) {
+          const recipientId = recipientSelect.value; // Ambil ID penerima
+          socket.emit('chat message', input.value, recipientId); // Kirim pesan
+          input.value = '';
+        }
+      });
+
+      socket.on('chat message', (msg, senderId) => {
+        const item = document.createElement('li');
+        item.textContent = `${senderId}: ${msg}`;
+        //  Tentukan class berdasarkan pengirim/penerima
+        item.classList.add(senderId === myId ? 'sender' : 'receiver');
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight); // Scroll ke bawah
+      });
+
+
+        // --- Fetch dan Display Data Portfolio ---
+        fetch('/api/portfolio')
+            .then(response => response.json())
+            .then(data => {
+                // --- Menampilkan Project (dengan gambar) ---
+                const projectsContainer = document.querySelector('.projects');
+                projectsContainer.innerHTML = ''; // Kosongkan
+                data.projects.forEach(project => {
+                    const projectDiv = document.createElement('div');
+                    projectDiv.classList.add('project');
+                    projectDiv.innerHTML = `
+                        <h2>${project.title}</h2>
+                        <img src="${project.image}" alt="${project.title}">
+                        <p>${project.description}</p>
+                    `;
+                    projectsContainer.appendChild(projectDiv);
+                });
+
+                // --- Menampilkan Skills (dengan gambar) ---
+                const skillsList = document.querySelector('#skills .skills');
+                skillsList.innerHTML = ''; // Kosongkan
+                data.skills.forEach(skill => {
+                    const skillItem = document.createElement('li');
+                    skillItem.classList.add('skill'); // Tambah class skill
+                    skillItem.innerHTML = `
+                      <img src="${skill.image}" alt="${skill.name}" />
+                      <span>${skill.name}</span>
+                    `;
+                    skillsList.appendChild(skillItem);
+                });
+
+                // --- Menampilkan Contact ---
+                document.getElementById('email').textContent = data.contact.email;
+                document.getElementById('github').href = data.contact.github;
+                document.getElementById('github').textContent = data.contact.github;
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.querySelector('#projects').innerHTML = '<p>Error loading portfolio data.</p>';
+            });
+    </script>
+</body>
+</html>
